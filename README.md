@@ -22,7 +22,8 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
-##Git 操作的具体步骤:
+
+# Git 操作的具体步骤:
   0. 工作区(本地) ==> 缓存区(虚拟区域) ==> 仓库区(git网站 + 创建的仓库名称)
     0.1: 工作区:在本地新建一个文件夹,编写代码或者说明文档等
     0.2: 仓库区:在github网站,新建一个仓库
@@ -44,7 +45,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
       找到:.id_rsa.pub 文件,一长串字符
       到github网站=》setting =》ssh配置
     2.1: 提交
-      git remote add o origin 地址(https://xxx.git)
+      git remote add origin 地址(https://xxx.git)
       git push -u origin master
 
       第二次以后提交:
@@ -60,6 +61,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
     切换分支命令: git checkout (branchname)
     列出分支基本命令: git branch
       发布主 master
+      主 main
       开发主 dev
                   ⬆️git merge <name>         ⬆️           ⬆️
           自行创建  dev-A
