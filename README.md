@@ -23,7 +23,13 @@ npm run lint
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
-# Git 操作的具体步骤:
+# 项目规划
+  1.项目设想:公司介绍的项目.首先,能够对公司的运营活动进行数字化;其次,介绍公司的产品.
+
+
+# 技术栈
+
+# 1.Git 操作的具体步骤:
   0. 工作区(本地) ==> 缓存区(虚拟区域) ==> 仓库区(git网站 + 创建的仓库名称)
     0.1: 工作区:在本地新建一个文件夹,编写代码或者说明文档等
     0.2: 仓库区:在github网站,新建一个仓库
@@ -67,3 +73,16 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
           自行创建  dev-A
                                         自行创建  dev-B
                                                           ...
+
+# 2.bootstrap
+  why? 5.0--删除jquery,停止支持IE
+  引入方式:
+    2.1.cdn:  
+    2.2.npm
+
+# 3.Todolist
+  引入 微信云开发:
+  https://docs.cloudbase.net/api-reference/webv2/initialization.html
+
+  3.1npm引入 云开发SDK: npm install @cloudbase/js-sdk -S
+  3.2在需要使用的页面:import cloudbase from '@cloudbase/js-sdk'
