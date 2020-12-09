@@ -24,10 +24,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, onMounted } from 'vue'
 // import useLoadMore from '../hooks/useLoadMore'
 import ColumnList from '../components/ColumnList.vue'
 import { useStore } from 'vuex'
+import { GlobalDataProps } from '../store'
 
 export default defineComponent({
   name: 'Home',
@@ -35,12 +36,12 @@ export default defineComponent({
     ColumnList
   },
   setup () {
-    const store = useStore()
+    const store = useStore<GlobalDataProps>()
     //   const total = computed(() => store.state.columns.total)
     //   const currentPage = computed(() => store.state.columns.currentPage)
-    //   onMounted(() => {
-    //     store.dispatch('fetchColumns', { pageSize: 3 })
-    //   })
+    onMounted(() => {
+      store.dispatch('fetchColumns')
+    })
     const list = computed(() => store.state.columns)
     const biggerColumnsLength = computed(() => store.getters.biggerColumnsLength)
     //   const { loadMorePage, isLastPage } = useLoadMore('fetchColumns', total, { pageSize: 3, currentPage: (currentPage.value ? currentPage.value + 1 : 2) })

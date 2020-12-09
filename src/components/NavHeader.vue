@@ -2,6 +2,7 @@
   <nav class="navbar navbar-dark bg-primary justify-content-between mb-4 px-4">
     <router-link class="navbar-brand" to="/">
       <img src="../assets/logo.png" class="rounded w-25 my-1">
+      <p>南京爱游</p>
     </router-link>
     <ul v-if="!user.isLogin" class="list-inline mb-0">
       <li class="list-inline-item">
@@ -10,12 +11,12 @@
         </router-link>
       </li>
       <li class="list-inline-item">
-        <router-link to="/login" class="btn btn-outline-light my-2">
+        <router-link to="/signup" class="btn btn-outline-light my-2">
           注册
           </router-link>
       </li>
     </ul>
-    <ul v-else class="list-inline mb-0">
+    <ul v-else class="list-inline mb-0 d-flex">
       <li class="list-inline-item">
         <dropdown :title="`您好 ${user.nickName}`">
           <dropdown-item>

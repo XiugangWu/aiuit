@@ -1,6 +1,8 @@
 <template>
   <div class="container">
-    <global-header :user="currentUser"/>
+    <nav-header :user="currentUser"/>
+    <loader text="拼命加载中" background="rgba(0,0,0,0.7)"  v-if="isLoading"></loader>
+    <!-- <message type="error" /> -->
     <router-view />
     <footer class="text-center py-4 text-secondary bg-light mt-6">
       <small>
@@ -17,19 +19,32 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
-import GlobalHeader from './components/GlobalHeader.vue'
+import { computed, defineComponent, watch } from 'vue'
+import NavHeader from './components/NavHeader.vue'
+import Loader from './components/Loader.vue'
+import useMessageCreate from './hooks/useMessageCreate'
 import store from './store'
 
 export default defineComponent({
   name: 'App',
   components: {
-    GlobalHeader
+    NavHeader,
+    Loader
   },
   setup () {
     const currentUser = computed(() => store.state.user)
+    const isLoading = computed(() => store.state.loading)
+    const error = computed(() => store.state.error)
+    watch(() => error.value.status, () => {
+      const { status, message } = error.value
+      if (status && message) {
+        useMessageCreate(message, 'error')
+      }
+    })
     return {
-      currentUser
+      currentUser,
+      isLoading,
+      error
     }
   }
 })

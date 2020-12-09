@@ -5,6 +5,8 @@ const Home = () => import(/* webpackChunkName: "Home" */ '../views/Home.vue')
 const Login = () => import(/* webpackChunkName: "Login" */ '../views/Login.vue')
 const ColumnDetail = () => import(/* webpackChunkName: "ColumnDetail" */ '../views/ColumnDetail.vue')
 const CreatePost = () => import(/* webpackChunkName: "CreatePost" */ '../views/CreatePost.vue')
+const Mine = () => import(/* webpackChunkName: "Mine" */ '../views/Mine.vue')
+const Signup = () => import(/* webpackChunkName: "Signup" */ '../views/Signup.vue')
 
 const routerHistory = createWebHistory()
 const router = createRouter({
@@ -31,6 +33,16 @@ const router = createRouter({
       name: 'create',
       component: CreatePost,
       meta: { requiredLogin: true }
+    },
+    {
+      path: '/mine',
+      name: 'mine',
+      component: Mine
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: Signup
     }
   ]
 })

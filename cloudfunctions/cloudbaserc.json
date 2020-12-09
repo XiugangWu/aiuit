@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "envId": "aiu-mycompany-1uzhz",
+  "functionRoot": "",
+  "functions": [
+    {
+      "name": "login",
+      "timeout": 5,
+      "envVariables": {},
+      "runtime": "Nodejs10.15",
+      "memory": 128,
+      "aclRule": { "invoke": true }
+    }
+  ]
+}

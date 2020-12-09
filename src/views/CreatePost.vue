@@ -69,24 +69,26 @@ export default defineComponent({
     const onFormSubmit = (result: boolean) => {
       console.log('result', result)
       if (result) {
-        const { columnId } = store.state.user
-        if (columnId) {
+        const { column, userId } = store.state.user
+        if (column) {
           const newPost: PostProps = {
-            id: new Date().getTime(),
+            // postId: new Date().getTime().toString(),
+            // _id: '测试_id', [2020-12-3,经测试,会将 云数据库中的 _id 字段覆盖掉]
             title: titleVal.value,
             content: contentVal.value,
-            columnId,
-            createdAt: new Date().toLocaleString()
+            column,
+            createdAt: new Date().toLocaleString(),
+            author: userId
           }
           auth.anonymousAuthProvider().signIn()
             .then(() => {
-              db.collection('test')
+              db.collection('posts')
                 .add(newPost)
                 .then(() => { console.log('数据插入成功') })
                 .catch(err => { console.log(err) })
               store.commit('createPost', newPost)
               // 创建好文章后,自动跳转到详情页
-              router.push({ name: 'column', params: { id: columnId } })
+              router.push({ name: 'column', params: { id: column } })
             })
             .catch(err => { console.log(err) })
         }
