@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "envId": "aiu-mycompany-1uzhz",
-  "functionRoot": "",
+  "functionRoot": "cloudfunctions",
   "functions": [
     {
       "name": "login",

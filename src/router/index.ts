@@ -1,12 +1,14 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import store from '../store'
 
 const Home = () => import(/* webpackChunkName: "Home" */ '../views/Home.vue')
 const Login = () => import(/* webpackChunkName: "Login" */ '../views/Login.vue')
 const ColumnDetail = () => import(/* webpackChunkName: "ColumnDetail" */ '../views/ColumnDetail.vue')
 const CreatePost = () => import(/* webpackChunkName: "CreatePost" */ '../views/CreatePost.vue')
+const CreateColumn = () => import(/* webpackChunkName: "CreateColumn" */ '../views/CreateColumn.vue')
 const Mine = () => import(/* webpackChunkName: "Mine" */ '../views/Mine.vue')
 const Signup = () => import(/* webpackChunkName: "Signup" */ '../views/Signup.vue')
+const PostDetail = () => import(/* webpackChunkName: "PostDetail" */ '../views/PostDetail.vue')
 
 const routerHistory = createWebHistory()
 const router = createRouter({
@@ -29,9 +31,15 @@ const router = createRouter({
       component: ColumnDetail
     },
     {
-      path: '/create',
-      name: 'create',
+      path: '/createPost',
+      name: 'createPost',
       component: CreatePost,
+      meta: { requiredLogin: true }
+    },
+    {
+      path: '/createColumn',
+      name: 'createColumn',
+      component: CreateColumn,
       meta: { requiredLogin: true }
     },
     {
@@ -43,30 +51,41 @@ const router = createRouter({
       path: '/signup',
       name: 'signup',
       component: Signup
+    },
+    {
+      path: '/post/:id',
+      name: 'post',
+      component: PostDetail
     }
   ]
 })
 
 /**
- *  1.路由守卫,当用户没有登陆时,并且用户试图前往“不是login页面”,则强制跳转到login
- *    to.name !== 'login' && !store.state.user.isLogin
- *  2.路由元信息meta,创建不同的规则:
- *    2.1 当用户 未登陆的情况下,试图访问/create页面, 则用户强制跳到/login
- *    2.2 当登陆用户,访问登陆页面/login, 则跳转到 首页/home
+ *
+ * @desc 腾讯云环境,用户的登陆状态分 未登陆(已处理成匿名登陆), 匿名登陆 和 其他(邮箱登陆/微信登陆等).
+ *       匿名登陆:可访问 !requiredLogin 的内容; 需要登陆的页面,强制跳转到login页面
+ *       其他: 即已登陆,此时再访问 登陆界面,则触发 redirectAlreadyLogin 跳转到首页
+ * @param to
+ * @param from
+ * @param next
  */
 router.beforeEach((to, from, next) => {
-  // 当用户 未登陆的情况下,试图访问/create页面, 则用户强制跳到/login
-  if (to.meta.requiredLogin && !store.state.user.isLogin) {
-    next({
-      name: 'login'
-    })
-  } else if (to.meta.redirectAlreadyLogin && store.state.user.isLogin) {
-    next({
-      name: 'home'
-    })
+  const { user } = store.state
+  const { requiredLogin, redirectAlreadyLogin } = to.meta
+  if (user.loginType === 'ANONYMOUS') {
+    if (requiredLogin) {
+      next('login')
+    } else {
+      next()
+    }
   } else {
-    next()
+    if (redirectAlreadyLogin) {
+      next('/')
+    } else {
+      next()
+    }
   }
+  // next()
 })
 
 export default router

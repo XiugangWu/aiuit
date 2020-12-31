@@ -1,13 +1,13 @@
-/**
- *  输入: 一个DOM节点
- *  输出: 判断,点击的位置 是否 为 此节点
- *  注: Ref,为类型
- */
 import { onMounted, onUnmounted, ref, Ref } from 'vue'
 
+/**
+ *
+ * @description 判断鼠标是否点击了 特定区域 之外
+ * @param elementRef 特定区域(ref 同名的响应式对象，就可以拿到对应的 dom 节点)
+ */
 const useClickOutside = (elementRef: Ref<null | HTMLElement>) => {
   const isClickOutside = ref(false)
-  const handle = (e: MouseEvent) => {
+  const handler = (e: MouseEvent) => {
     if (elementRef.value) {
       if (elementRef.value.contains(e.target as HTMLElement)) {
         isClickOutside.value = false
@@ -18,10 +18,10 @@ const useClickOutside = (elementRef: Ref<null | HTMLElement>) => {
   }
 
   onMounted(() => {
-    document.addEventListener('click', handle)
+    document.addEventListener('click', handler)
   })
   onUnmounted(() => {
-    document.addEventListener('click', handle)
+    document.addEventListener('click', handler)
   })
 
   return isClickOutside

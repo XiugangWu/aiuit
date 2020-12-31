@@ -5,7 +5,7 @@
       <div class="mb-3">
         <label class="form-label">邮箱地址</label>
         <validate-input
-          :rules="emailRules" v-model="emailVal"
+          :rules="emailRules" v-model="emailAndPassword.email"
           placeholder="请输入邮箱地址"
           type="text"
           ref="inputRef"
@@ -17,9 +17,10 @@
           type="password"
           placeholder="请输入密码"
           :rules="passwordRules"
-          v-model="passwordVal"
+          v-model="emailAndPassword.password"
         />
       </div>
+      <!-- #submit  是 v-slot:submit的缩写 -->
       <template #submit>
         <button type="submit" class="btn btn-primary btn-block btn-large">登录</button>
       </template>
@@ -28,12 +29,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { defineComponent, reactive } from 'vue'
 import ValidateInput, { RulesProp } from '../components/ValidateInput.vue'
 import ValidateForm from '../components/ValidateForm.vue'
 import useMessageCreate from '../hooks/useMessageCreate'
+import router from '../router'
+import store from '../store'
+import { auth, tcb } from '../hooks/useTcbInit'
 
 export default defineComponent({
   name: 'Login',
@@ -42,42 +44,80 @@ export default defineComponent({
     ValidateForm
   },
   setup () {
-    const router = useRouter()
-    const store = useStore()
-
-    const emailVal = ref('')
+    const emailAndPassword = reactive({
+      email: '',
+      password: ''
+    })
     const emailRules: RulesProp = [
       { type: 'required', message: '电子邮箱地址不能为空' },
       { type: 'email', message: '请输入正确的电子邮箱格式' }
     ]
 
-    const passwordVal = ref('')
     const passwordRules: RulesProp = [
       { type: 'required', message: '密码不能为空' }
     ]
 
-    const onFormSubmit = (result: boolean) => {
+    const onFormSubmit = async (result: boolean) => {
       if (result) {
-        // router.push('/')
-        // store.commit('login')
-        const payload = {
-          email: emailVal.value,
-          password: passwordVal.value
-        }
-        store.dispatch('loginAndFetch', payload).then(data => {
-          useMessageCreate('登录成功 2秒后跳转首页', 'success')
-          setTimeout(() => {
-            router.push('/')
-          }, 2000)
-        }).catch(e => {
-          console.log(e)
-        })
+        // 客户端验证通过后,首先在腾讯云登陆,随后再去数据库中查询并更新用户数据
+        await auth
+          .signInWithEmailAndPassword(emailAndPassword.email, emailAndPassword.password)
+          .then(() => {
+            store.commit('updateUser', auth.currentUser)
+            useMessageCreate('登录成功...1秒后跳转首页', 'success') // 操作成功反馈
+            setTimeout(() => { // 自动跳转至首页
+              router.push('/')
+            }, 1000)
+            // 查询数据库是否有该玩家数据,如果有则返回;如果没有(一般情况下不会出现,防止意外),则记录下来(以便做用户分析)
+            tcb
+              .callFunction({
+                name: 'clouddb', // 调用云函数
+                data: {
+                  method: 'get',
+                  dbName: 'userInfo',
+                  where: {
+                    email: emailAndPassword.email,
+                    password: emailAndPassword.password
+                  }
+                }
+              })
+              .then(res => {
+                console.log(res.result)
+                if (res.result.total === 0) {
+                  // 未查询数据,则在数据库中新增 1606509309@qq.com
+                  // console.log('数据库中未查询到,此时auth.currentUser:::', auth.currentUser)
+                  if (auth.currentUser) {
+                    const userInfo = {
+                      email: auth.currentUser.email,
+                      password: emailAndPassword.password,
+                      loginType: auth.currentUser.loginType,
+                      uid: auth.currentUser.loginType
+                    }
+                    store.dispatch('createUser', userInfo)
+                  }
+                } else {
+                  // 查询到数据, 则更新用户数据
+                  tcb
+                    .callFunction({
+                      name: 'clouddb',
+                      data: {
+                        method: 'update',
+                        dbName: 'userInfo',
+                        id: res.result.data[0]._id,
+                        formData: { test: true }
+                      }
+                    })
+                }
+              })
+          })
+          .catch(() => {
+            useMessageCreate('邮箱或密码不正确', 'error') // 操作失败反馈
+          })
       }
     }
     return {
-      emailVal,
+      emailAndPassword,
       emailRules,
-      passwordVal,
       passwordRules,
       onFormSubmit
     }

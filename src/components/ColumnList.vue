@@ -1,10 +1,10 @@
 <template>
   <div class="row">
-    <div v-for="column in columnList" :key="column._id" class="col-6 mb-4">
+    <div v-for="column in columnList" :key="column._id" class="col-4 mb-4">
       <div class="card h-100 shawow-sm">
         <div class="card-body text-center">
             <img
-              :src="column.avatar.url || column.avatar"
+              :src="column.avatar && column.avatar.fitUrl"
               class="rounded-circle border border-light w-25 my-3"
               :alt="column.title"
             />
@@ -21,7 +21,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from 'vue'
-import { ColumnProps } from '../store'
+import { ColumnProps } from '@/store'
+import { useAddAvatar } from '@/hooks/useAddAvatar'
 
 export default defineComponent({
   name: 'ColumnList',
@@ -32,16 +33,11 @@ export default defineComponent({
     }
   },
   setup (props) {
-    // console.log('props:', props)
     const columnList = computed(() => {
       return props.list.map(column => {
-        if (!column.avatar) {
-          column.avatar = {
-            url: require('@/assets/column.jpg')
-          }
-        }
-        // console.log('column', column)
+        useAddAvatar(column, 50)
         return column
+        // TODO: 图片可考虑用 对象存储
       })
     })
 

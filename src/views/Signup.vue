@@ -1,6 +1,6 @@
 <template>
   <div class="signup-page mx-auto p-3 w-330">
-    <h5 class="my-4 text-center">注册者也账户</h5>
+    <h5 class="my-4 text-center">注册爱游账户</h5>
     <validate-form @form-submit="onFormSubmit">
       <div class="mb-3">
         <label class="form-label">邮箱地址</label>
@@ -40,26 +40,17 @@
         <button type="submit" class="btn btn-primary btn-block btn-large">注册新用户</button>
       </template>
     </validate-form>
-    <div>
-      <h1></h1>
-      <button>测试云函数</button>
-    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import router from '../router'
 import store from '../store'
 import ValidateInput, { RulesProp } from '../components/ValidateInput.vue'
 import ValidateForm from '../components/ValidateForm.vue'
 import useMessageCreate from '../hooks/useMessageCreate'
-import cloudbase from '@cloudbase/js-sdk/app'
-
-const app = cloudbase.init({
-  env: 'aiu-mycompany-1uzhz'
-})
-const db = app.database()
+import { auth, tcb } from '../hooks/useTcbInit'
 
 export default defineComponent({
   name: 'Signup',
@@ -74,7 +65,6 @@ export default defineComponent({
       password: '',
       repeatPassword: ''
     })
-    const router = useRouter()
     const emailRules: RulesProp = [
       { type: 'required', message: '电子邮箱地址不能为空' },
       { type: 'email', message: '请输入正确的电子邮箱格式' }
@@ -97,50 +87,47 @@ export default defineComponent({
         message: '密码不相同'
       }
     ]
-    const onFormSubmit = (result: boolean) => {
+    const onFormSubmit = async (result: boolean) => {
       if (result) {
         const payload = {
           email: formData.email,
           password: formData.password,
-          nickName: formData.nickName
+          nickName: formData.nickName,
+          mailActivated: false
         }
-        app.auth({ persistence: 'local' })
+        // 注册时,1.直接使用tcb的“邮箱注册”功能https://docs.cloudbase.net/authentication/email-login.html#kai-tong-you-xiang-deng-lu
+        // 2.记录用户注册的邮箱,并标记“邮箱是否已激活”字段mailActivated为false
+        auth
           .signUpWithEmailAndPassword(payload.email, payload.password)
-          .then(res => {
-            // 发送验证邮件成功
-            db.collection('userInfo')
-              .add(payload)
-              .then(() => { console.log('数据插入成功') })
-              .catch(err => { console.log(err) })
-            store.commit('userInfoUpdate', payload)
-            // 提示成功,并跳转到登陆页
-            useMessageCreate('注册成功 正在跳转登录页面', 'success')
+          .then(() => {
+            // 发送验证邮件成功;1.记录用户的注册行为2.store.state更新
+            tcb
+              .callFunction({
+                name: 'clouddb',
+                data: {
+                  method: 'add',
+                  dbName: 'userInfo',
+                  formData: payload
+                }
+              })
+              .then(res => {
+                console.log('SignUp-addDB-res', res)
+              })
+              .catch(err => {
+                console.log('SignUp-addDB-err', err)
+              })
+            // 操作反馈
+            useMessageCreate('注册成功 请到邮箱去验证', 'success')
             setTimeout(() => {
-              router.push('/login')
-            }, 2000)
+              router.push({ name: 'login' })
+            }, 1000)
           })
-          .catch(err => { console.log(err) })
-        // axios.post('/users/', payload).then(data => {
-        //   createMessage('注册成功 正在跳转登录页面', 'success')
-        //   setTimeout(() => {
-        //     router.push('/login')
-        //   }, 2000)
-        // }).catch(e => {
-        //   console.log(e)
-        // })
+          .catch(err => {
+            console.log('SignUp-err:', err) // JSON.parse(err)
+          })
       }
     }
-    app
-      .callFunction({
-        // 云函数名称
-        name: 'login',
-        // 传给云函数的参数
-        data: {
-          a: 1
-        }
-      })
-      .then(res => { console.log(res.result) })
-      .catch(err => { console.log(err) })
+
     return {
       emailRules,
       nameRules,
